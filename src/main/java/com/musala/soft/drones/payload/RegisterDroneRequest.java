@@ -14,6 +14,4 @@ public class RegisterDroneRequest {
 
     private Double weightLimit;
 
-    private Double batteryCapacity;
-
 }

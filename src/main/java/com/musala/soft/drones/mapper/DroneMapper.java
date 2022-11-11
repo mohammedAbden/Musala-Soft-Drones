@@ -15,6 +15,7 @@ public class DroneMapper {
         final Drone drone = new Drone();
         BeanUtils.copyProperties(request, drone);
         drone.setState(State.IDLE);
+        drone.setBatteryCapacity(100D);
         return drone;
     }
 
