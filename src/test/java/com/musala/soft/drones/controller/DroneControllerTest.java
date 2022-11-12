@@ -181,8 +181,16 @@ class DroneControllerTest {
         d2.setModel(Model.LIGHT_WEIGHT);
         d2.setWeightLimit(500D);
 
+        Drone d3 = new Drone();
+        d3.setState(State.LOADED);
+        d3.setBatteryCapacity(100D);
+        d3.setSerialNumber("s3");
+        d3.setModel(Model.LIGHT_WEIGHT);
+        d3.setWeightLimit(500D);
+
         droneRepository.save(d1);
         droneRepository.save(d2);
+        droneRepository.save(d3);
 
         // Given
         final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.get(BASE_URL + "/api/v1/drone/available")
@@ -201,8 +209,10 @@ class DroneControllerTest {
             assertNull(response.getErrors());
             assertEquals(HttpStatus.OK.value(), response.getCode());
 
-            assertEquals(1,response.getPayload().size());
-            assertEquals("s1", response.getPayload().get(0).getSerialNumber());
+            assertEquals(2, response.getPayload().size());
+            assertTrue(response.getPayload().stream().allMatch(droneDTO -> State.IDLE == droneDTO.getState()
+                    || State.LOADING == droneDTO.getState()));
+
         });
 
     }

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,7 +43,7 @@ public class DroneServiceImpl implements DroneService {
     @Override
     public Collection<DroneDTO> getAvailableDrone() {
 
-        return droneRepository.findByState(State.IDLE).stream().map(droneMapper::mapToDTO)
+        return droneRepository.findByStateIn(List.of(State.IDLE, State.LOADING)).stream().map(droneMapper::mapToDTO)
                 .collect(Collectors.toList());
     }
 
