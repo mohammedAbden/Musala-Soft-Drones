@@ -7,11 +7,14 @@ import com.musala.soft.drones.InputProvider;
 import com.musala.soft.drones.api.ApiResponse;
 import com.musala.soft.drones.argument.RegisterDroneRequestInvalidArgumentProvider;
 import com.musala.soft.drones.dto.DroneDTO;
+import com.musala.soft.drones.entity.Drone;
 import com.musala.soft.drones.enums.Model;
 import com.musala.soft.drones.enums.State;
 import com.musala.soft.drones.exception.ErrorCode;
 import com.musala.soft.drones.payload.RegisterDroneRequest;
+import com.musala.soft.drones.repository.DroneRepository;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
@@ -25,6 +28,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.nio.charset.Charset;
+import java.util.Collection;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,6 +46,16 @@ class DroneControllerTest {
     private ObjectMapper objectMapper;
 
     private final static String BASE_URL = "http://localhost:9090";
+
+    @Autowired
+    private DroneRepository droneRepository;
+
+    @BeforeEach
+    void deleteAllDrone() {
+
+        droneRepository.deleteAll();
+    }
+
 
     @SneakyThrows
     @Test
@@ -77,7 +92,7 @@ class DroneControllerTest {
     @SneakyThrows
     @ParameterizedTest
     @ArgumentsSource(RegisterDroneRequestInvalidArgumentProvider.class)
-    void registerDrone_invalidRequest_returnFailedResponse(RegisterDroneRequest request, String errorCode){
+    void registerDrone_invalidRequest_returnFailedResponse(RegisterDroneRequest request, String errorCode) {
 
         // Given
         final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.post(BASE_URL + "/api/v1/drone")
@@ -96,7 +111,7 @@ class DroneControllerTest {
             assertFalse(response.getSuccess());
             assertNotNull(response.getErrors());
             assertEquals(HttpStatus.BAD_REQUEST.value(), response.getCode());
-           assertEquals(errorCode,response.getErrors().get(0).getCode());
+            assertEquals(errorCode, response.getErrors().get(0).getCode());
         });
     }
 
@@ -144,8 +159,53 @@ class DroneControllerTest {
             assertFalse(response2.getSuccess());
             assertNotNull(response2.getErrors());
             assertEquals(HttpStatus.BAD_REQUEST.value(), response2.getCode());
-            assertEquals(ErrorCode.DRONE_SERIAL_NUMBER_EXIST,response2.getErrors().get(0).getCode());
+            assertEquals(ErrorCode.DRONE_SERIAL_NUMBER_EXIST, response2.getErrors().get(0).getCode());
         });
     }
+
+    @SneakyThrows
+    @Test
+    void getAvailableDrones_returnFailedResponse() {
+
+        Drone d1 = new Drone();
+        d1.setState(State.IDLE);
+        d1.setBatteryCapacity(100D);
+        d1.setSerialNumber("s1");
+        d1.setModel(Model.LIGHT_WEIGHT);
+        d1.setWeightLimit(500D);
+
+        Drone d2 = new Drone();
+        d2.setState(State.LOADING);
+        d2.setBatteryCapacity(100D);
+        d2.setSerialNumber("s2");
+        d2.setModel(Model.LIGHT_WEIGHT);
+        d2.setWeightLimit(500D);
+
+        droneRepository.save(d1);
+        droneRepository.save(d2);
+
+        // Given
+        final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.get(BASE_URL + "/api/v1/drone/available")
+                .contentType("application/json");
+
+        final MvcResult result = mockMvc.perform(builder).andReturn();
+        final JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString(Charset.defaultCharset()));
+        ApiResponse<List<DroneDTO>> response = objectMapper.convertValue(json, new TypeReference<>() {
+
+        });
+
+        //then
+        assertAll(() -> {
+            assertEquals(HttpStatus.OK.value(), result.getResponse().getStatus());
+            assertTrue(response.getSuccess());
+            assertNull(response.getErrors());
+            assertEquals(HttpStatus.OK.value(), response.getCode());
+
+            assertEquals(1,response.getPayload().size());
+            assertEquals("s1", response.getPayload().get(0).getSerialNumber());
+        });
+
+    }
+
 
 }
