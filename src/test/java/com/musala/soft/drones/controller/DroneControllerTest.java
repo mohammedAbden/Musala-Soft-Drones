@@ -9,6 +9,7 @@ import com.musala.soft.drones.argument.RegisterDroneRequestInvalidArgumentProvid
 import com.musala.soft.drones.dto.DroneDTO;
 import com.musala.soft.drones.enums.Model;
 import com.musala.soft.drones.enums.State;
+import com.musala.soft.drones.exception.ErrorCode;
 import com.musala.soft.drones.payload.RegisterDroneRequest;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -96,6 +97,54 @@ class DroneControllerTest {
             assertNotNull(response.getErrors());
             assertEquals(HttpStatus.BAD_REQUEST.value(), response.getCode());
            assertEquals(errorCode,response.getErrors().get(0).getCode());
+        });
+    }
+
+    @SneakyThrows
+    @Test
+    void registerDrone_duplicationSerialNumber_returnFailedResponse() {
+
+        final RegisterDroneRequest request = InputProvider.validRegisterDroneRequest();
+        request.setSerialNumber("exist_serial");
+
+        // Given
+        final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.post(BASE_URL + "/api/v1/drone")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType("application/json");
+
+        final MvcResult result = mockMvc.perform(builder).andReturn();
+        final JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString(Charset.defaultCharset()));
+        ApiResponse<DroneDTO> response = objectMapper.convertValue(json, new TypeReference<>() {
+
+        });
+
+        //When
+        final MvcResult result2 = mockMvc.perform(builder).andReturn();
+        final JsonNode json2 = objectMapper.readTree(result2.getResponse().getContentAsString(Charset.defaultCharset()));
+        ApiResponse<Object> response2 = objectMapper.convertValue(json2, new TypeReference<>() {
+
+        });
+
+        //then
+        assertAll(() -> {
+            assertEquals(HttpStatus.CREATED.value(), result.getResponse().getStatus());
+            assertTrue(response.getSuccess());
+            assertNull(response.getErrors());
+            assertEquals(HttpStatus.CREATED.value(), response.getCode());
+
+            assertEquals(500D, response.getPayload().getWeightLimit());
+            assertEquals(100D, response.getPayload().getBatteryCapacity());
+            assertEquals(Model.LIGHT_WEIGHT, response.getPayload().getModel());
+            assertEquals(request.getSerialNumber(), response.getPayload().getSerialNumber());
+            assertEquals(State.IDLE, response.getPayload().getState());
+        });
+
+        assertAll(() -> {
+            assertEquals(HttpStatus.BAD_REQUEST.value(), result2.getResponse().getStatus());
+            assertFalse(response2.getSuccess());
+            assertNotNull(response2.getErrors());
+            assertEquals(HttpStatus.BAD_REQUEST.value(), response2.getCode());
+            assertEquals(ErrorCode.DRONE_SERIAL_NUMBER_EXIST,response2.getErrors().get(0).getCode());
         });
     }
 

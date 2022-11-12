@@ -3,6 +3,8 @@ package com.musala.soft.drones.service;
 import com.musala.soft.drones.dto.DroneDTO;
 import com.musala.soft.drones.entity.Drone;
 import com.musala.soft.drones.enums.State;
+import com.musala.soft.drones.exception.ErrorCode;
+import com.musala.soft.drones.exception.RuntimeBusinessException;
 import com.musala.soft.drones.mapper.DroneMapper;
 import com.musala.soft.drones.payload.RegisterDroneRequest;
 import com.musala.soft.drones.repository.DroneRepository;
@@ -27,6 +29,10 @@ public class DroneServiceImpl implements DroneService {
     public DroneDTO registerDrone(final RegisterDroneRequest registerDroneRequest) {
 
         validator.doCheck(registerDroneRequest);
+        droneRepository.findBySerialNumber(registerDroneRequest.getSerialNumber()).
+                ifPresent(drone -> {
+                    throw new RuntimeBusinessException(null, ErrorCode.DRONE_SERIAL_NUMBER_EXIST);
+                });
 
         Drone drone = droneMapper.mapRegisterDroneRequestToEntity(registerDroneRequest);
         final Drone saveDrone = droneRepository.save(drone);

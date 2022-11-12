@@ -12,6 +12,8 @@ public class ErrorCode {
 
     public static final String WEIGHT_LIMIT_SHOULD_BE_0_TO_500 = "DRN$0005";
 
+    public static final String DRONE_SERIAL_NUMBER_EXIST = "DRN$0006";
+
     public static final String MEDICATION_NAME_NOT_PROVIDED = "MED$0001";
 
     public static final String MEDICATION_CODE_NOT_PROVIDED = "MED$0002";
