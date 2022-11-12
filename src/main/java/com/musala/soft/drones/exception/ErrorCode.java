@@ -20,4 +20,8 @@ public class ErrorCode {
 
     public static final String MEDICATION_IMAGE_NOT_PROVIDED = "MED$0004";
 
+    public static final String MEDICATION_NAME_NOT_MATCH_CRITERIA = "MED$0005";
+
+    public static final String MEDICATION_CODE_NOT_MATCH_CRITERIA = "MED$0006";
+
 }

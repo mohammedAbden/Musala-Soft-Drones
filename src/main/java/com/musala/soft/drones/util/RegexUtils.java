@@ -6,7 +6,7 @@ public final class RegexUtils {
 
     public final static String LETTERS_NUMBERS_UNDERSCORE_MINUS = "^[a-zA-Z0-9_-]*$";
 
-    public static final String UPPER_LETTERS_NUMBERS_UNDERSCORE_MINUS = "^[A-Z0-9_]*$";
+    public static final String UPPER_LETTERS_NUMBERS_UNDERSCORE = "^[A-Z0-9_]*$";
 
     private RegexUtils() {
 
