@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
+
 @RestController
 @RequestMapping("api/v1/drone")
 @RequiredArgsConstructor
@@ -22,6 +24,16 @@ public class DroneController {
         final long start = System.currentTimeMillis();
         DroneDTO drownDto = droneService.registerDrone(registerDroneRequest);
         return ApiResponse.created(drownDto, (System.currentTimeMillis() - start) + " ms");
+
+    }
+
+    @GetMapping("available")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<Collection<DroneDTO>> getAvailableDrones() {
+
+        final long start = System.currentTimeMillis();
+        Collection<DroneDTO> availableDrones = droneService.getAvailableDrone();
+        return ApiResponse.ok(availableDrones, (System.currentTimeMillis() - start) + " ms");
 
     }
 
