@@ -22,7 +22,7 @@ public class InputProvider {
         AddingMedicationRequest request = new AddingMedicationRequest();
         request.setName("name1");
         request.setWeight(20D);
-        request.setCode("ABC_123-CD");
+        request.setCode("ABC_123_CD");
         request.setImage("image1");
         return request;
     }
