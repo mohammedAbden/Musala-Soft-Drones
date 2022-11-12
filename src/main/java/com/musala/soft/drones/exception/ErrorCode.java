@@ -12,4 +12,12 @@ public class ErrorCode {
 
     public static final String WEIGHT_LIMIT_SHOULD_BE_0_TO_500 = "DRN$0005";
 
+    public static final String MEDICATION_NAME_NOT_PROVIDED = "MED$0001";
+
+    public static final String MEDICATION_CODE_NOT_PROVIDED = "MED$0002";
+
+    public static final String MEDICATION_WEIGHT_NOT_PROVIDED = "MED$0003";
+
+    public static final String MEDICATION_IMAGE_NOT_PROVIDED = "MED$0004";
+
 }
