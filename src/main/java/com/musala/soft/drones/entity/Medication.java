@@ -13,16 +13,16 @@ import javax.persistence.*;
 @Table(name = "medication")
 public class Medication extends BaseEntity {
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "weight")
+    @Column(name = "weight", nullable = false)
     private Double weight;
 
-    @Column(name = "code")
+    @Column(name = "code", nullable = false)
     private String code;
 
-    @Column(name = "image")
+    @Column(name = "image", nullable = false)
     private String image;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -9,6 +9,8 @@ import com.musala.soft.drones.validation.BusinessValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class MedicationServiceImpl implements MedicationService {
@@ -28,6 +30,12 @@ public class MedicationServiceImpl implements MedicationService {
         Medication drone = medicationMapper.mapAddingMedicationRequestToEntity(request);
         final Medication saveEntity = medicationRepository.save(drone);
         return medicationMapper.mapToDTO(saveEntity);
+    }
+
+    @Override
+    public List<Medication> findValidMedicationForLoading(final List<Long> medicationIds) {
+
+        return medicationRepository.findByIdInAndTripIsNull(medicationIds);
     }
 
 }

@@ -51,9 +51,15 @@ public class DroneServiceImpl implements DroneService {
     @Override
     public DroneBatteryDTO getDroneBatterLevel(final Long id) {
 
-        Drone drone = droneRepository.findById(id)
-                .orElseThrow(() -> new RuntimeBusinessException(null, ErrorCode.DRONE_NOT_EXIST));
+        Drone drone = findById(id);
         return droneMapper.mapToDroneBatteryDTO(drone);
+    }
+
+    @Override
+    public Drone findById(final Long id) {
+
+        return droneRepository.findById(id)
+                .orElseThrow(() -> new RuntimeBusinessException(null, ErrorCode.DRONE_NOT_EXIST));
     }
 
 }
