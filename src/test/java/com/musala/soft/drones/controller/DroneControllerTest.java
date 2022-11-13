@@ -8,17 +8,24 @@ import com.musala.soft.drones.api.ApiResponse;
 import com.musala.soft.drones.argument.RegisterDroneRequestInvalidArgumentProvider;
 import com.musala.soft.drones.dto.DroneBatteryDTO;
 import com.musala.soft.drones.dto.DroneDTO;
+import com.musala.soft.drones.dto.MedicationDTO;
+import com.musala.soft.drones.dto.TripDTO;
 import com.musala.soft.drones.entity.Drone;
 import com.musala.soft.drones.enums.Model;
 import com.musala.soft.drones.enums.State;
+import com.musala.soft.drones.enums.TripStatus;
 import com.musala.soft.drones.exception.ErrorCode;
+import com.musala.soft.drones.payload.AddingMedicationRequest;
+import com.musala.soft.drones.payload.LoadMedicationsRequest;
 import com.musala.soft.drones.payload.RegisterDroneRequest;
 import com.musala.soft.drones.repository.DroneRepository;
+import com.musala.soft.drones.service.MedicationService;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,11 +36,11 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -50,6 +57,9 @@ class DroneControllerTest {
 
     @Autowired
     private DroneRepository droneRepository;
+
+    @Autowired
+    private MedicationService medicationService;
 
     @BeforeEach
     void deleteAllDrone() {
@@ -257,7 +267,7 @@ class DroneControllerTest {
 
         final Drone saveDrone = droneRepository.save(d1);
 
-        final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.get(BASE_URL + "/api/v1/drone/"+saveDrone.getId()+"/battery-level")
+        final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.get(BASE_URL + "/api/v1/drone/" + saveDrone.getId() + "/battery-level")
                 .contentType("application/json");
 
         final MvcResult result = mockMvc.perform(builder).andReturn();
@@ -278,5 +288,223 @@ class DroneControllerTest {
 
     }
 
+
+    @SneakyThrows
+    @Test
+    void loadMedication_notExistDrown_returnFailedResponse() {
+
+        LoadMedicationsRequest request = new LoadMedicationsRequest();
+
+        // Given
+        final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put(BASE_URL + "/api/v1/drone/1/medications")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType("application/json");
+
+        final MvcResult result = mockMvc.perform(builder).andReturn();
+        final JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString(Charset.defaultCharset()));
+        ApiResponse<Object> response = objectMapper.convertValue(json, new TypeReference<>() {
+
+        });
+
+        assertAll(() -> {
+            assertEquals(HttpStatus.BAD_REQUEST.value(), result.getResponse().getStatus());
+            assertFalse(response.getSuccess());
+            assertNotNull(response.getErrors());
+            assertEquals(HttpStatus.BAD_REQUEST.value(), response.getCode());
+            assertEquals(ErrorCode.DRONE_NOT_EXIST, response.getErrors().get(0).getCode());
+        });
+
+    }
+
+
+    @ParameterizedTest
+    @EnumSource(mode = EXCLUDE, names = { "IDLE", "LOADING" })
+    @SneakyThrows
+    void testWithEnumSource(State state) {
+
+        Drone d1 = new Drone();
+        d1.setState(state);
+        d1.setBatteryCapacity(100D);
+        d1.setSerialNumber("s1");
+        d1.setModel(Model.LIGHT_WEIGHT);
+        d1.setWeightLimit(500D);
+        final Drone save = droneRepository.save(d1);
+
+        LoadMedicationsRequest request = new LoadMedicationsRequest();
+
+        // Given
+        final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put(BASE_URL + "/api/v1/drone/"+save.getId()+"/medications")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType("application/json");
+
+        final MvcResult result = mockMvc.perform(builder).andReturn();
+        final JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString(Charset.defaultCharset()));
+        ApiResponse<Object> response = objectMapper.convertValue(json, new TypeReference<>() {
+
+        });
+
+        assertAll(() -> {
+            assertEquals(HttpStatus.BAD_REQUEST.value(), result.getResponse().getStatus());
+            assertFalse(response.getSuccess());
+            assertNotNull(response.getErrors());
+            assertEquals(HttpStatus.BAD_REQUEST.value(), response.getCode());
+            assertEquals(ErrorCode.DRONE_NOT_IN_VALID_STATE_TO_LOAD, response.getErrors().get(0).getCode());
+        });
+    }
+
+    @SneakyThrows
+    @Test
+    void loadMedication_batteryLevelLow_returnFailedResponse() {
+
+        Drone d1 = new Drone();
+        d1.setState(State.IDLE);
+        d1.setBatteryCapacity(24D);
+        d1.setSerialNumber("s1");
+        d1.setModel(Model.LIGHT_WEIGHT);
+        d1.setWeightLimit(500D);
+        final Drone save = droneRepository.save(d1);
+
+        LoadMedicationsRequest request = new LoadMedicationsRequest();
+
+        // Given
+        final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put(BASE_URL + "/api/v1/drone/"+save.getId()+"/medications")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType("application/json");
+
+        final MvcResult result = mockMvc.perform(builder).andReturn();
+        final JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString(Charset.defaultCharset()));
+        ApiResponse<Object> response = objectMapper.convertValue(json, new TypeReference<>() {
+
+        });
+
+        assertAll(() -> {
+            assertEquals(HttpStatus.BAD_REQUEST.value(), result.getResponse().getStatus());
+            assertFalse(response.getSuccess());
+            assertNotNull(response.getErrors());
+            assertEquals(HttpStatus.BAD_REQUEST.value(), response.getCode());
+            assertEquals(ErrorCode.DRONE_BATTERY_LEVEL_LESS_THAN_THRESHOLD, response.getErrors().get(0).getCode());
+        });
+    }
+
+
+    @SneakyThrows
+    @Test
+    void loadMedication_notExistMedication_returnFailedResponse() {
+
+        Drone d1 = new Drone();
+        d1.setState(State.IDLE);
+        d1.setBatteryCapacity(100D);
+        d1.setSerialNumber("s1");
+        d1.setModel(Model.LIGHT_WEIGHT);
+        d1.setWeightLimit(500D);
+        final Drone save = droneRepository.save(d1);
+
+        LoadMedicationsRequest request = new LoadMedicationsRequest();
+        request.setMedicationIds(List.of(1L));
+
+        // Given
+        final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put(BASE_URL + "/api/v1/drone/"+save.getId()+"/medications")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType("application/json");
+
+        final MvcResult result = mockMvc.perform(builder).andReturn();
+        final JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString(Charset.defaultCharset()));
+        ApiResponse<Object> response = objectMapper.convertValue(json, new TypeReference<>() {
+
+        });
+
+        assertAll(() -> {
+            assertEquals(HttpStatus.BAD_REQUEST.value(), result.getResponse().getStatus());
+            assertFalse(response.getSuccess());
+            assertNotNull(response.getErrors());
+            assertEquals(HttpStatus.BAD_REQUEST.value(), response.getCode());
+            assertEquals(ErrorCode.MEDICATION_LOADED_BEFORE_OR_NOT_EXIST, response.getErrors().get(0).getCode());
+        });
+    }
+
+    @SneakyThrows
+    @Test
+    void loadMedication_medicationWeightMoreThanDroneLimit_returnFailedResponse() {
+
+        Drone d1 = new Drone();
+        d1.setState(State.IDLE);
+        d1.setBatteryCapacity(100D);
+        d1.setSerialNumber("s1");
+        d1.setModel(Model.LIGHT_WEIGHT);
+        d1.setWeightLimit(500D);
+        final Drone save = droneRepository.save(d1);
+
+        final AddingMedicationRequest addingMedicationRequest = InputProvider.validAddingMedicationRequest();
+        addingMedicationRequest.setWeight(600D);
+        final MedicationDTO medicationDTO = medicationService.addMedication(addingMedicationRequest);
+
+        LoadMedicationsRequest request = new LoadMedicationsRequest();
+        request.setMedicationIds(List.of(medicationDTO.getId()));
+
+        // Given
+        final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put(BASE_URL + "/api/v1/drone/"+save.getId()+"/medications")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType("application/json");
+
+        final MvcResult result = mockMvc.perform(builder).andReturn();
+        final JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString(Charset.defaultCharset()));
+        ApiResponse<Object> response = objectMapper.convertValue(json, new TypeReference<>() {
+
+        });
+
+        assertAll(() -> {
+            assertEquals(HttpStatus.BAD_REQUEST.value(), result.getResponse().getStatus());
+            assertFalse(response.getSuccess());
+            assertNotNull(response.getErrors());
+            assertEquals(HttpStatus.BAD_REQUEST.value(), response.getCode());
+            assertEquals(ErrorCode.MEDICATION_WEIGHT_MORE_THAN_DRONE_LIMIT, response.getErrors().get(0).getCode());
+        });
+    }
+
+
+    @SneakyThrows
+    @Test
+    void loadMedication_validRequest_returnSuccessResponse() {
+
+        Drone d1 = new Drone();
+        d1.setState(State.IDLE);
+        d1.setBatteryCapacity(100D);
+        d1.setSerialNumber("s1");
+        d1.setModel(Model.LIGHT_WEIGHT);
+        d1.setWeightLimit(500D);
+        final Drone save = droneRepository.save(d1);
+
+        final AddingMedicationRequest addingMedicationRequest = InputProvider.validAddingMedicationRequest();
+        final MedicationDTO medicationDTO = medicationService.addMedication(addingMedicationRequest);
+
+        LoadMedicationsRequest request = new LoadMedicationsRequest();
+        request.setMedicationIds(List.of(medicationDTO.getId()));
+
+        // Given
+        final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.put(BASE_URL + "/api/v1/drone/"+save.getId()+"/medications")
+                .content(objectMapper.writeValueAsString(request))
+                .contentType("application/json");
+
+        final MvcResult result = mockMvc.perform(builder).andReturn();
+        final JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString(Charset.defaultCharset()));
+        ApiResponse<TripDTO> response = objectMapper.convertValue(json, new TypeReference<>() {
+
+        });
+
+        assertAll(() -> {
+            assertEquals(HttpStatus.OK.value(), result.getResponse().getStatus());
+            assertTrue(response.getSuccess());
+            assertNull(response.getErrors());
+            assertEquals(HttpStatus.OK.value(), response.getCode());
+
+            assertNotNull(response.getPayload());
+            assertEquals(TripStatus.LOADING, response.getPayload().getStatus());
+            assertNotNull(response.getPayload().getDrone());
+            assertEquals(save.getId(),response.getPayload().getDrone().getId());
+            assertNotNull(response.getPayload().getTripItems());
+            assertEquals(1,response.getPayload().getTripItems().size());
+            assertEquals(medicationDTO.getId(),response.getPayload().getTripItems().stream().findFirst().get().getId());
+        });
+    }
 
 }
