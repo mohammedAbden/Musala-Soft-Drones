@@ -19,6 +19,8 @@ import com.musala.soft.drones.payload.AddingMedicationRequest;
 import com.musala.soft.drones.payload.LoadMedicationsRequest;
 import com.musala.soft.drones.payload.RegisterDroneRequest;
 import com.musala.soft.drones.repository.DroneRepository;
+import com.musala.soft.drones.repository.MedicationRepository;
+import com.musala.soft.drones.repository.TripRepository;
 import com.musala.soft.drones.service.MedicationService;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,11 +61,19 @@ class DroneControllerTest {
     private DroneRepository droneRepository;
 
     @Autowired
+    private MedicationRepository medicationRepository;
+
+    @Autowired
+    private TripRepository tripRepository;
+
+    @Autowired
     private MedicationService medicationService;
 
     @BeforeEach
     void deleteAllDrone() {
 
+        medicationRepository.deleteAll();
+        tripRepository.deleteAll();
         droneRepository.deleteAll();
     }
 
