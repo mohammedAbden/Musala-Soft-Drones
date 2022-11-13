@@ -83,7 +83,7 @@ public class DroneLoadMedicationFacadeImpl implements DroneLoadMedicationFacade 
 
         List<Medication> medications = medicationService.findValidMedicationForLoading(loadMedicationsRequest.getMedicationIds());
         if (medications.size() != loadMedicationsRequest.getMedicationIds().size())
-            throw new RuntimeBusinessException(null, ErrorCode.MEDICATION_LOADED_BEFORE);
+            throw new RuntimeBusinessException(null, ErrorCode.MEDICATION_LOADED_BEFORE_OR_NOT_EXIST);
 
         return medications;
     }

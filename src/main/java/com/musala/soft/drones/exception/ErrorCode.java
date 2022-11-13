@@ -32,7 +32,7 @@ public class ErrorCode {
 
     public static final String MEDICATION_CODE_NOT_MATCH_CRITERIA = "MED$0006";
 
-    public static final String MEDICATION_LOADED_BEFORE ="MED$0007";
+    public static final String MEDICATION_LOADED_BEFORE_OR_NOT_EXIST ="MED$0007";
 
     public static final String MEDICATION_WEIGHT_MORE_THAN_DRONE_LIMIT = "MED$0008";
 
