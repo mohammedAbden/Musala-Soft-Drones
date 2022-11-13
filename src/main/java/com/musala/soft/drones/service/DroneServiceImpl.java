@@ -1,5 +1,6 @@
 package com.musala.soft.drones.service;
 
+import com.musala.soft.drones.dto.DroneBatteryDTO;
 import com.musala.soft.drones.dto.DroneDTO;
 import com.musala.soft.drones.entity.Drone;
 import com.musala.soft.drones.enums.State;
@@ -45,6 +46,14 @@ public class DroneServiceImpl implements DroneService {
 
         return droneRepository.findByStateIn(List.of(State.IDLE, State.LOADING)).stream().map(droneMapper::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public DroneBatteryDTO getDroneBatterLevel(final Long id) {
+
+        Drone drone = droneRepository.findById(id)
+                .orElseThrow(() -> new RuntimeBusinessException(null, ErrorCode.DRONE_NOT_EXIST));
+        return droneMapper.mapToDroneBatteryDTO(drone);
     }
 
 }

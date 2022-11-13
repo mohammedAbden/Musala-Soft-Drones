@@ -1,6 +1,7 @@
 package com.musala.soft.drones.controller;
 
 import com.musala.soft.drones.api.ApiResponse;
+import com.musala.soft.drones.dto.DroneBatteryDTO;
 import com.musala.soft.drones.dto.DroneDTO;
 import com.musala.soft.drones.payload.RegisterDroneRequest;
 import com.musala.soft.drones.service.DroneService;
@@ -34,6 +35,16 @@ public class DroneController {
         final long start = System.currentTimeMillis();
         Collection<DroneDTO> availableDrones = droneService.getAvailableDrone();
         return ApiResponse.ok(availableDrones, (System.currentTimeMillis() - start) + " ms");
+
+    }
+
+    @GetMapping("{id}/battery-level")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<DroneBatteryDTO> getDroneBatterLevel(@PathVariable("id") Long id) {
+
+        final long start = System.currentTimeMillis();
+        DroneBatteryDTO batteryLevel = droneService.getDroneBatterLevel(id);
+        return ApiResponse.ok(batteryLevel, (System.currentTimeMillis() - start) + " ms");
 
     }
 

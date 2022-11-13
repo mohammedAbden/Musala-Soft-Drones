@@ -14,6 +14,8 @@ public class ErrorCode {
 
     public static final String DRONE_SERIAL_NUMBER_EXIST = "DRN$0006";
 
+    public static final String DRONE_NOT_EXIST = "DRN$0007";
+
     public static final String MEDICATION_NAME_NOT_PROVIDED = "MED$0001";
 
     public static final String MEDICATION_CODE_NOT_PROVIDED = "MED$0002";

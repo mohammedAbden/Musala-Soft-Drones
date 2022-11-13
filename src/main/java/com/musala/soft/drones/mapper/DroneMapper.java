@@ -1,5 +1,6 @@
 package com.musala.soft.drones.mapper;
 
+import com.musala.soft.drones.dto.DroneBatteryDTO;
 import com.musala.soft.drones.dto.DroneDTO;
 import com.musala.soft.drones.entity.Drone;
 import com.musala.soft.drones.enums.State;
@@ -22,6 +23,13 @@ public class DroneMapper {
     public DroneDTO mapToDTO(Drone drone) {
 
         final DroneDTO droneDTO = new DroneDTO();
+        BeanUtils.copyProperties(drone, droneDTO);
+        return droneDTO;
+    }
+
+    public DroneBatteryDTO mapToDroneBatteryDTO(Drone drone) {
+
+        final DroneBatteryDTO droneDTO = new DroneBatteryDTO();
         BeanUtils.copyProperties(drone, droneDTO);
         return droneDTO;
     }
