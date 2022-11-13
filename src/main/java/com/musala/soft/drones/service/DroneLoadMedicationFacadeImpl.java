@@ -21,7 +21,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DroneLoadMedicationFacadeImpl implements DroneLoadMedicationFacade {
 
-    private final List<State> validState = List.of(State.IDLE, State.LOADING);
 
     //TODO Configured
     private final Double batteryLevelThreshold = 25D;
@@ -40,7 +39,7 @@ public class DroneLoadMedicationFacadeImpl implements DroneLoadMedicationFacade 
 
         Drone drone = droneService.findById(id);
 
-        validateDroneStateValidForLoading(drone);
+        validateDroneStateValidForLoading(drone, List.of(State.IDLE, State.LOADING));
 
         validateDroneBatteryLevel(drone);
 
@@ -48,7 +47,7 @@ public class DroneLoadMedicationFacadeImpl implements DroneLoadMedicationFacade 
 
         Double medicationWeight = validMedication.stream().map(Medication::getWeight).reduce(0D, Double::sum);
 
-        Trip currentTrip = getCurrentTrip(drone);
+        Trip currentTrip = getCurrentTrip(drone, List.of(TripStatus.LOADING));
 
         Double loadedMedicationsWeight = currentTrip.getTripItems().stream().map(Medication::getWeight).reduce(0D, Double::sum);
 
@@ -59,6 +58,23 @@ public class DroneLoadMedicationFacadeImpl implements DroneLoadMedicationFacade 
         return tripMapper.mapToDto(tripService.save(currentTrip));
     }
 
+    @Override
+    public TripDTO getLoadedDroneWithMedication(final Long id) {
+
+        Drone drone = droneService.findById(id);
+
+        validateDroneStateValidForLoading(drone, List.of(State.IDLE, State.LOADING, State.LOADED));
+
+
+        if (State.IDLE.equals(drone.getState())) {
+            Trip newTrip = new Trip();
+            newTrip.setDrone(drone);
+            return tripMapper.mapToDto(newTrip);
+        }
+
+        return tripMapper.mapToDto(getCurrentTrip(drone, List.of(TripStatus.LOADING, TripStatus.LOADED)));
+    }
+
     private void validateWeight(final Double medicationWeight, final Double loadedMedicationsWeight, final Drone drone) {
 
         if (medicationWeight + loadedMedicationsWeight > drone.getWeightLimit())
@@ -66,7 +82,7 @@ public class DroneLoadMedicationFacadeImpl implements DroneLoadMedicationFacade 
 
     }
 
-    private Trip getCurrentTrip(final Drone drone) {
+    private Trip getCurrentTrip(final Drone drone, List<TripStatus> statuses) {
 
         if (State.IDLE.equals(drone.getState())) {
             Trip newTrip = new Trip();
@@ -75,7 +91,7 @@ public class DroneLoadMedicationFacadeImpl implements DroneLoadMedicationFacade 
             drone.setState(State.LOADING);
             return newTrip;
         }
-        return tripService.findCurrentTripByDroneOrReturnNew(drone);
+        return tripService.findByDroneAndStatusIn(drone, statuses);
 
     }
 
@@ -95,9 +111,9 @@ public class DroneLoadMedicationFacadeImpl implements DroneLoadMedicationFacade 
 
     }
 
-    private void validateDroneStateValidForLoading(final Drone drone) {
+    private void validateDroneStateValidForLoading(final Drone drone, List<State> states) {
 
-        if (!validState.contains(drone.getState()))
+        if (!states.contains(drone.getState()))
             throw new RuntimeBusinessException(null, ErrorCode.DRONE_NOT_IN_VALID_STATE_TO_LOAD);
 
     }

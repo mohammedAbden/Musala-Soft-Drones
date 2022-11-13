@@ -9,6 +9,8 @@ import com.musala.soft.drones.repository.TripRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class TripServiceImpl implements TripService {
@@ -16,9 +18,9 @@ public class TripServiceImpl implements TripService {
     private final TripRepository tripRepository;
 
     @Override
-    public Trip findCurrentTripByDroneOrReturnNew(final Drone drone) {
+    public Trip findByDroneAndStatusIn(final Drone drone, List<TripStatus> status) {
 
-        return tripRepository.findByDroneAndStatus(drone, TripStatus.LOADING).orElseThrow(
+        return tripRepository.findByDroneAndStatusIn(drone, status).orElseThrow(
                 () -> new RuntimeBusinessException(null, ErrorCode.NO_CURRENT_TRIP_FOR_DRONE));
     }
 

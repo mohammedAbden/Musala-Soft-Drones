@@ -7,4 +7,6 @@ public interface DroneLoadMedicationFacade {
 
     TripDTO loadDroneWithMedication(Long id, LoadMedicationsRequest loadMedicationsRequest);
 
+    TripDTO getLoadedDroneWithMedication(Long id);
+
 }

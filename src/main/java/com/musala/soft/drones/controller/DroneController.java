@@ -56,10 +56,20 @@ public class DroneController {
     @PutMapping("{id}/medications")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<TripDTO> loadDroneWithMedication(@PathVariable("id") Long id,
-                                                                @RequestBody LoadMedicationsRequest loadMedicationsRequest) {
+                                                        @RequestBody LoadMedicationsRequest loadMedicationsRequest) {
 
         final long start = System.currentTimeMillis();
         TripDTO trip = droneLoadMedicationFacade.loadDroneWithMedication(id, loadMedicationsRequest);
+        return ApiResponse.ok(trip, (System.currentTimeMillis() - start) + " ms");
+
+    }
+
+    @GetMapping("{id}/medications")
+    @ResponseStatus(HttpStatus.OK)
+    public ApiResponse<TripDTO> getLoadedDroneWithMedication(@PathVariable("id") Long id) {
+
+        final long start = System.currentTimeMillis();
+        TripDTO trip = droneLoadMedicationFacade.getLoadedDroneWithMedication(id);
         return ApiResponse.ok(trip, (System.currentTimeMillis() - start) + " ms");
 
     }
