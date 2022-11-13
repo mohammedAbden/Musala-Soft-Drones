@@ -6,6 +6,7 @@ import com.musala.soft.drones.entity.Drone;
 import com.musala.soft.drones.payload.RegisterDroneRequest;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface DroneService {
 
@@ -16,5 +17,7 @@ public interface DroneService {
     DroneBatteryDTO getDroneBatterLevel(Long id);
 
     Drone findById(Long id);
+
+    List<Drone> getAllDroneEntities();
 
 }

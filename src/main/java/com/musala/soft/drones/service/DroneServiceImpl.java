@@ -62,4 +62,10 @@ public class DroneServiceImpl implements DroneService {
                 .orElseThrow(() -> new RuntimeBusinessException(null, ErrorCode.DRONE_NOT_EXIST));
     }
 
+    @Override
+    public List<Drone> getAllDroneEntities() {
+
+        return droneRepository.findAll();
+    }
+
 }
