@@ -18,7 +18,7 @@ import java.util.Set;
 public class Trip extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "drown_id", nullable = false)
+    @JoinColumn(name = "drone_id", nullable = false)
     private Drone drone;
 
     @Enumerated(EnumType.STRING)
