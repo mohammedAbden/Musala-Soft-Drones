@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.musala.soft.drones.InputProvider;
 import com.musala.soft.drones.api.ApiResponse;
 import com.musala.soft.drones.argument.RegisterDroneRequestInvalidArgumentProvider;
+import com.musala.soft.drones.dto.DroneBatteryDTO;
 import com.musala.soft.drones.dto.DroneDTO;
 import com.musala.soft.drones.entity.Drone;
 import com.musala.soft.drones.enums.Model;
@@ -165,7 +166,7 @@ class DroneControllerTest {
 
     @SneakyThrows
     @Test
-    void getAvailableDrones_returnFailedResponse() {
+    void getAvailableDrones_returnDroneWithIdleAndLoadingState() {
 
         Drone d1 = new Drone();
         d1.setState(State.IDLE);
@@ -213,6 +214,66 @@ class DroneControllerTest {
             assertTrue(response.getPayload().stream().allMatch(droneDTO -> State.IDLE == droneDTO.getState()
                     || State.LOADING == droneDTO.getState()));
 
+        });
+
+    }
+
+
+    @SneakyThrows
+    @Test
+    void getDroneBatteryLevel_notFoundDrone_returnFailedResponse() {
+        // Given
+        final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.get(BASE_URL + "/api/v1/drone/1/battery-level")
+                .contentType("application/json");
+
+        final MvcResult result = mockMvc.perform(builder).andReturn();
+        final JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString(Charset.defaultCharset()));
+        ApiResponse<DroneDTO> response = objectMapper.convertValue(json, new TypeReference<>() {
+
+        });
+
+        assertAll(() -> {
+            assertEquals(HttpStatus.BAD_REQUEST.value(), result.getResponse().getStatus());
+            assertFalse(response.getSuccess());
+            assertNotNull(response.getErrors());
+            assertEquals(HttpStatus.BAD_REQUEST.value(), response.getCode());
+            assertEquals(ErrorCode.DRONE_NOT_EXIST, response.getErrors().get(0).getCode());
+        });
+
+    }
+
+
+    @SneakyThrows
+    @Test
+    void getDroneBatteryLevel_existDrone_returnSuccessResponse() {
+        // Given
+
+        Drone d1 = new Drone();
+        d1.setState(State.IDLE);
+        d1.setBatteryCapacity(50D);
+        d1.setSerialNumber("s1");
+        d1.setModel(Model.LIGHT_WEIGHT);
+        d1.setWeightLimit(500D);
+
+        final Drone saveDrone = droneRepository.save(d1);
+
+        final MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.get(BASE_URL + "/api/v1/drone/"+saveDrone.getId()+"/battery-level")
+                .contentType("application/json");
+
+        final MvcResult result = mockMvc.perform(builder).andReturn();
+        final JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString(Charset.defaultCharset()));
+        ApiResponse<DroneBatteryDTO> response = objectMapper.convertValue(json, new TypeReference<>() {
+
+        });
+
+        assertAll(() -> {
+            assertEquals(HttpStatus.OK.value(), result.getResponse().getStatus());
+            assertTrue(response.getSuccess());
+            assertNull(response.getErrors());
+            assertEquals(HttpStatus.OK.value(), response.getCode());
+
+            assertEquals(50D, response.getPayload().getBatteryCapacity());
+            assertEquals("s1", response.getPayload().getSerialNumber());
         });
 
     }
